@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Machines in Site: {{ site_name }}</h3>
+
+<!-- Summary Row -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <strong>Total Machines: {{ total }}</strong>
+         <small class="text-muted">Last refreshed: {{ last_refresh }}</small>
+    </div>
+
+     <div>
+         <!-- Refresh button reloads the same page -->
+        <form method="get" action="/machines/{{ site_name }}" class="d-inline">
+            <input type="hidden" name="search" value="{{ request.args.get('search', '') }}">
+            <input type="hidden" name="status" value="{{ request.args.get('status', '') }}">
+            <input type="hidden" name="page" value="{{ page }}">
+            <button type="submit" class="btn btn-warning">🔄 Refresh</button>
+        </form>
+        <a href="/machines/{{ site_name }}/export" class="btn btn-success">⬇ Download Excel</a>
+    </div>
+
+    <form method="get" class="d-flex">
+        <input type="hidden" name="page" value="1">
+        <input type="text" name="search" class="form-control me-2"
+               placeholder="Search by name..." value="{{ request.args.get('search', '') }}">
+<!--        <select name="status" class="form-select me-2">-->
+<!--            <option value="">All Status</option>-->
+<!--            <option value="poweredOn" {% if request.args.get('status') == "poweredOn" %}selected{% endif %}>Powered On</option>-->
+<!--            <option value="poweredOff" {% if request.args.get('status') == "poweredOff" %}selected{% endif %}>Powered Off</option>-->
+<!--            <option value="N/A" {% if request.args.get('status') == "N/A" %}selected{% endif %}>N/A</option>-->
+<!--        </select>-->
+        <button type="submit" class="btn btn-primary">Apply</button>
+    </form>
+</div>
+
+<table class="table table-bordered table-striped table-hover align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Name</th>
+            <th>OS</th>
+            <th>CPU Cores</th>
+            <th>RAM (MB)</th>
+             <th>Total Storage (GB)</th>  <!-- ✅ Added -->
+            <th>Power Status</th>
+            <th>vCenter</th>
+            <th>Host</th>
+            <th>Disks (Detailed)</th> <!-- ✅ Clarified this -->
+            <th>Disks</th>
+            <th>NICs</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for machine in machines %}
+        <tr>
+            <td>{{ machine.properties.displayName or machine.name }}</td>
+            <td>
+                {% if machine.properties.operatingSystemDetails %}
+                    {{ machine.properties.operatingSystemDetails.osName or "Unknown" }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td>{{ machine.properties.numberOfProcessorCore or 'N/A' }}</td>
+            <td>{{ machine.properties.allocatedMemoryInMB or 'N/A' }}</td>
+             <td>{{ machine.properties.totalDiskSizeInGB or 'N/A' }}</td> <!-- ✅ Added -->
+            <td>{{ machine.properties.powerStatus or 'N/A' }}</td>
+            <td>{{ machine.properties.vCenterFQDN or 'N/A' }}</td>
+            <td>{{ machine.properties.hostName or 'N/A' }}</td>
+            <td>{{ machine.properties.totalDiskSizeInGB or 'N/A' }}</td> <!-- ✅ New column -->
+            <td>
+                {% if machine.properties.disks %}
+                    <ul>
+                    {% for disk in machine.properties.disks %}
+                        <li>
+                            {{ disk.label }} – Size: {{ (disk.maxSizeInBytes / (1024*1024*1024))|round(2) }} GB
+                            – Used: {{ (disk.usedSpaceInBytes / (1024*1024*1024))|round(2) if disk.usedSpaceInBytes else 0 }} GB
+                            – Type: {{ disk.diskProvisioningPolicy }}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td>
+                {% if machine.properties.networkAdapters %}
+                    <ul>
+                    {% for nic in machine.properties.networkAdapters %}
+                        <li>{{ nic.label }} – {{ nic.networkName }}
+                            {% if nic.ipAddressList %}
+                                ({{ nic.ipAddressList|join(', ') }})
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Pagination Controls -->
+<nav>
+  <ul class="pagination justify-content-center">
+    <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+      <a class="page-link" href="?page={{ page-1 }}&search={{ request.args.get('search', '') }}&status={{ request.args.get('status', '') }}">Previous</a>
+    </li>
+
+    {% for p in range(1, total_pages+1) %}
+      <li class="page-item {% if p == page %}active{% endif %}">
+        <a class="page-link" href="?page={{ p }}&search={{ request.args.get('search', '') }}&status={{ request.args.get('status', '') }}">{{ p }}</a>
+      </li>
+    {% endfor %}
+
+    <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+      <a class="page-link" href="?page={{ page+1 }}&search={{ request.args.get('search', '') }}&status={{ request.args.get('status', '') }}">Next</a>
+    </li>
+  </ul>
+</nav>
+
+<a href="/sites" class="btn btn-secondary">Back to Sites</a>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>VMware Sites</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Site Name</th>
+            <th>Location</th>
+            <th>Machines</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for site in sites %}
+        <tr>
+            <td>{{ site.name }}</td>
+            <td>{{ site.location }}</td>
+            <td><a href="/machines/{{ site.name }}" class="btn btn-sm btn-primary">View Machines</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="/projects" class="btn btn-secondary">Back to Projects</a>
+{% endblock %}

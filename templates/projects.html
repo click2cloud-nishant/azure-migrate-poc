@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Assessment Projects</h3>
+<table class="table table-bordered table-hover table-striped align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Project Name</th>
+            <th>Machines</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for project in projects %}
+        <tr>
+            <td>
+                {{ project.tags["Migrate Project"] if project.tags and "Migrate Project" in project.tags else project.name }}
+            </td>
+            <td>{{ project.properties.numberOfMachines }}</td>
+            <td>
+                <a href="/project/{{ project.name }}" class="btn btn-sm btn-info">View Details</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<!--<a href="/sites" class="btn btn-success">View Sites</a>-->
+
+
+<a href="/sites" class="btn btn-success">View Machines</a>
+{% endblock %}
