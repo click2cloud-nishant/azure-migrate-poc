@@ -100,7 +100,7 @@ def list_machines(site_name):
     headers = {"Authorization": f"Bearer {token}"}
 
     machines = fetch_all_pages(url, headers)
-    print("Machines", machines)
+
     # --- Search & Filter ---
     search = request.args.get("search", "").lower()
     status_filter = request.args.get("status", "")
